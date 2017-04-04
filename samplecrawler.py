@@ -1,6 +1,8 @@
-from bs4 import BeautifulSoup
+import json
 import urllib.request
 import urllib.parse
+from bs4 import BeautifulSoup
+import urllib.request
 
 
 """
@@ -11,72 +13,13 @@ S Helper
 3) text to pdf
 """
 
-sample_url = "http://law.go.kr/precSc.do?menuId=3&query=2016도18941"
-# sample_url = "http://law.go.kr/precSc.do?menuId=3&query=2016%EB%8F%8418941"
-
-
-def find_case(case_number):
-    """
-
-    :param case_number:
-    :return:
-    """
-    print(sample_url)
-    print(urllib.parse.quote("2016도18941"))
-
-    # using urllib, find case related html file
-    fp = urllib.request.urlopen(sample_url)
-    print(fp.read())
-    # get case from html file
-    beautifulsoup_obj = BeautifulSoup(fp.read(), "html.parser")
-    # use this beautifulsoup_obj, find wanted text
-    text = beautifulsoup_obj.get_text
-    return text
-
-
-def prettify_text(text):
-    """
-
-    :param text:
-    :return:
-    """
-    pass
-
-import json
-import urllib.request
-from bs4 import BeautifulSoup
-
-class Scraper(object):
-    def __init__(self):
-        pass
-
-    def scrape(self):
-        law_cases = self.scrape_case()
-        for law_case in law_cases:
-            print(law_case)
-
-    def scrape_case(self, scrap_case):
-        query = {}
-        details = urllib.parse.urlencode(query)
-        details = details.encode()
-        request_url = "http://law.go.kr"
-        req = urllib.request.Request(request_url, details)
-        # req.add_header(None, None) # key, value
-
-        response = urllib.request.urlopen(req).read().decode()
-
-        print(response)
-
-from urllib import request, parse
-
-if __name__ == "__main__":
+def get_precseq(case):
     request_url = "http://law.go.kr/precScListWideR.do"
-    case_number = "2015다18367"
-    body = {"q": case_number, "section": "evtNm", "pg": 1, "outmax": 1}
-    body = parse.urlencode(body).encode()
+    body = {"q": case, "section": "evtNm", "pg": 1, "outmax": 1}
+    body = urllib.parse.urlencode(body).encode()
 
-    pre_request = urllib.request.Request(request_url, data=body)
-    response = urllib.request.urlopen(pre_request)
+    precseq_request = urllib.request.Request(request_url, data=body)
+    response = urllib.request.urlopen(precseq_request)
 
     result = response.read().decode()
 
@@ -86,17 +29,33 @@ if __name__ == "__main__":
 
     mixed_precseq = soup.div.ul.li["id"]
     precseq = mixed_precseq[7:]
-    print(precseq)
+    return precseq
 
-    request_url = "http://law.go.kr/precInfoR.do"
-    body = {"vSct": "2015다18367", "precSeq": int(precseq)}
-    body = parse.urlencode(body).encode()
+def get_pdf(precseq):
+    request_url = "http://law.go.kr/precPdfPrint.do"
+    body = {"precSeq": int(precseq), "conJo": "1,2,3,4,5,6,7,8"}
+    body = urllib.parse.urlencode(body).encode()
 
-    final_request = urllib.request.Request(request_url, data=body)
-    response = urllib.request.urlopen(final_request)
+    pdf_request = urllib.request.Request(request_url, data=body)
+    response = urllib.request.urlopen(pdf_request)
 
-    result = response.read().decode()
-    soup = BeautifulSoup(result, "html.parser")
-    print(soup.prettify())
+    result = response.read()
 
+    return result
 
+FILE_NAME = "sample{0}.pdf"
+
+if __name__ == "__main__":
+
+    case_numbers = ["2015다18367", "2016도19027", "2014다230535"]
+    count = 0
+    for case in case_numbers:
+        file_name = FILE_NAME.format(count)
+        count += 1
+        precseq = get_precseq(case)
+        pdf_string = get_pdf(precseq)
+
+        pdf_file = open(file_name, 'wb')
+        pdf_file.write(pdf_string)
+
+        pdf_file.close()
