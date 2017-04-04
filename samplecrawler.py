@@ -1,8 +1,8 @@
-import json
 import urllib.request
 import urllib.parse
 from bs4 import BeautifulSoup
 import urllib.request
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
 
 """
@@ -43,19 +43,35 @@ def get_pdf(precseq):
 
     return result
 
+def append_pdf(base_pdf, merged_pdf):
+    [base_pdf.addPage(merged_pdf.getPage(page_num)) for page_num in range(merged_pdf.numPages)]
+
 FILE_NAME = "sample{0}.pdf"
 
 if __name__ == "__main__":
 
     case_numbers = ["2015다18367", "2016도19027", "2014다230535"]
+    file_names = []
     count = 0
     for case in case_numbers:
-        file_name = FILE_NAME.format(count)
-        count += 1
-        precseq = get_precseq(case)
-        pdf_string = get_pdf(precseq)
+        try:
+            file_name = FILE_NAME.format(count)
+            count += 1
+            precseq = get_precseq(case)
+            pdf_string = get_pdf(precseq)
 
-        pdf_file = open(file_name, 'wb')
-        pdf_file.write(pdf_string)
+            pdf_file = open(file_name, 'wb')
+            pdf_file.write(pdf_string)
 
-        pdf_file.close()
+            pdf_file.close()
+        except Exception:
+            pass
+        else:
+            file_names.append(file_name)
+
+    base_pdf_writer = PdfFileWriter()
+    for file in file_names:
+        append_pdf(base_pdf_writer, PdfFileReader(file, "rb"))
+
+    base_pdf_writer.write(open("result.pdf", "wb"))
+
