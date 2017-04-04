@@ -58,3 +58,5 @@ fabric.properties
 venv/
 .idea/
 sample*.pdf
+result.pdf
+sunhwa.txt
