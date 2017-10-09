@@ -50,7 +50,7 @@ FILE_NAME = "sample{0}.pdf"
 
 if __name__ == "__main__":
 
-    case_numbers = ["2011다84298", "2005다22688"]
+    case_numbers = ["2002두5474", "2007두23255", "2007두3107"]
     file_names = []
     count = 0
     for case in case_numbers:
