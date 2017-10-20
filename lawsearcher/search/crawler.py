@@ -17,15 +17,11 @@ def get_judicial_precedents(law_list):
     not_crawled_list = list()
 
     for law in law_list:
-        result = crawl_judicial_pdf(law.code)
-        files.append(result)
-        # try:
-        #     result = crawl_judicial_pdf(code)
-        #     files.append(result)
-        #     pass
-        # # TODO: deal exception with customized exception - ex) NotFoundedException
-        # except Exception as e:
-        #     print(e)
+        try:
+            result = crawl_judicial_pdf(law.code)
+            files.append(result)
+        except:
+            not_crawled_list.append(law)
 
     return files, not_crawled_list
 
